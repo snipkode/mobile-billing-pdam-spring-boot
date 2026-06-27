@@ -6,11 +6,12 @@ public record TagihanResponse(
         Long id,
         String periode,
         String status,
+        Long total,
+        String jatuhTempo,
         Double meterAwal,
         Double meterAkhir,
         Double pemakaian,
-        Long totalTagihan,
-        String jatuhTempo,
+        String kategori,
         List<RincianItem> rincian
 ) {
     public record RincianItem(String label, Long nilai, boolean danger) {}

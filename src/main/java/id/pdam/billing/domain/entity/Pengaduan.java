@@ -22,6 +22,7 @@ public class Pengaduan {
 
     @Column(unique = true, nullable = false)
     private String nomorTiket;
+    private String fotoPath;
 
     private LocalDateTime createdAt;
 }

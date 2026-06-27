@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(a -> a
-                        .requestMatchers("/api/v1/auth/**", "/h2-console/**", "/actuator/**").permitAll()
+                        .requestMatchers("/auth/**", "/h2-console/**", "/actuator/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

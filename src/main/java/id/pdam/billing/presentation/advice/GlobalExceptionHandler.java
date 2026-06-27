@@ -2,6 +2,7 @@ package id.pdam.billing.presentation.advice;
 
 import id.pdam.billing.application.dto.response.ApiResponse;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,24 +17,27 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest req) {
         String msg = ex.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage).collect(Collectors.joining(", "));
-        return ResponseEntity.badRequest().body(ApiResponse.error(msg));
+        return ResponseEntity.badRequest().body(ApiResponse.error(msg, req.getRequestURI()));
     }
 
     @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
-    public ResponseEntity<ApiResponse<Void>> handleUnauthorized(Exception ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(ex.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorized(Exception ex, HttpServletRequest req) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ex.getMessage(), req.getRequestURI()));
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotFound(EntityNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(ex.getMessage()));
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(EntityNotFoundException ex, HttpServletRequest req) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage(), req.getRequestURI()));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleGeneral(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Terjadi kesalahan server"));
+    public ResponseEntity<ApiResponse<Void>> handleGeneral(Exception ex, HttpServletRequest req) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Terjadi kesalahan server", req.getRequestURI()));
     }
 }

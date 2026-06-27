@@ -27,7 +27,7 @@ public class NotifikasiMapper {
         }
 
         return new NotifikasiResponse(
-                n.getId(), n.getType(), n.getTitle(), n.getBody(),
+                String.valueOf(n.getId()), n.getType(), n.getTitle(), n.getBody(),
                 time, group, n.isUnread()
         );
     }

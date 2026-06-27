@@ -8,6 +8,10 @@ import org.springframework.stereotype.Component;
 public class PelangganMapper {
 
     public UserResponse toResponse(Pelanggan p) {
-        return new UserResponse(p.getId(), p.getNama(), p.getNomorPelanggan(), p.getEmail(), p.getTelepon());
+        return new UserResponse(
+                p.getId(), p.getNama(), p.getNomorPelanggan(),
+                p.getEmail(), p.getTelepon(),
+                p.getAlamat(), p.getGolongan(), p.getStatusMeter()
+        );
     }
 }

@@ -24,7 +24,8 @@ public class BillingService {
 
     public TagihanResponse getTagihanBulanIni(Long pelangganId) {
         Tagihan tagihan = tagihanRepository
-                .findTopByPelangganIdAndStatusOrderByCreatedAtDesc(pelangganId, "BELUM_LUNAS")
+                .findTopByPelangganIdAndStatusOrderByCreatedAtDesc(pelangganId, "Belum Lunas")
+                .or(() -> tagihanRepository.findByPelangganIdOrderByCreatedAtDesc(pelangganId).stream().findFirst())
                 .orElseThrow(() -> new EntityNotFoundException("Tidak ada tagihan aktif"));
         return tagihanMapper.toResponse(tagihan);
     }
@@ -39,7 +40,7 @@ public class BillingService {
         Tagihan tagihan = tagihanRepository.findById(req.tagihanId())
                 .filter(t -> t.getPelanggan().getId().equals(pelangganId))
                 .orElseThrow(() -> new EntityNotFoundException("Tagihan tidak ditemukan"));
-        tagihan.setStatus("LUNAS");
+        tagihan.setStatus("Lunas");
         tagihan.setTanggalBayar(LocalDate.now());
         tagihan.setMetodeBayar(req.metode());
         tagihanRepository.save(tagihan);

@@ -21,6 +21,11 @@ public class Pelanggan {
     private String alamat;
     private String password;
 
+    private String golongan;
+
+    @Builder.Default
+    private String statusMeter = "Aktif";
+
     @Builder.Default
     private String role = "PELANGGAN";
 

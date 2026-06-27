@@ -5,5 +5,8 @@ public record UserResponse(
         String nama,
         String nomorPelanggan,
         String email,
-        String telepon
+        String telepon,
+        String alamat,
+        String golongan,
+        String statusMeter
 ) {}

@@ -32,6 +32,8 @@ public class DataSeeder implements CommandLineRunner {
                 .email("budi@email.com")
                 .telepon("+62 812-3456-7890")
                 .alamat("Jl. Merdeka No. 10, Bandung")
+                .golongan("Rumah Tangga A2")
+                .statusMeter("Aktif")
                 .password(passwordEncoder.encode("password123"))
                 .role("PELANGGAN")
                 .aktif(true)
@@ -40,18 +42,18 @@ public class DataSeeder implements CommandLineRunner {
 
         tagihanRepo.save(Tagihan.builder().pelanggan(p).periode("Oktober 2023")
                 .meterAwal(1240.0).meterAkhir(1265.0).pemakaian(25.0).totalTagihan(245500L)
-                .status("BELUM_LUNAS").jatuhTempo(LocalDate.of(2023, 10, 20))
+                .status("Belum Lunas").jatuhTempo(LocalDate.of(2023, 10, 20))
                 .createdAt(LocalDateTime.now()).build());
 
         tagihanRepo.save(Tagihan.builder().pelanggan(p).periode("September 2023")
                 .meterAwal(1216.0).meterAkhir(1240.0).pemakaian(24.0).totalTagihan(134500L)
-                .status("LUNAS").jatuhTempo(LocalDate.of(2023, 9, 20))
+                .status("Lunas").jatuhTempo(LocalDate.of(2023, 9, 20))
                 .tanggalBayar(LocalDate.of(2023, 9, 18)).metodeBayar("Transfer Bank")
                 .createdAt(LocalDateTime.now().minusMonths(1)).build());
 
         tagihanRepo.save(Tagihan.builder().pelanggan(p).periode("Agustus 2023")
                 .meterAwal(1196.0).meterAkhir(1216.0).pemakaian(20.0).totalTagihan(112200L)
-                .status("LUNAS").jatuhTempo(LocalDate.of(2023, 8, 20))
+                .status("Lunas").jatuhTempo(LocalDate.of(2023, 8, 20))
                 .tanggalBayar(LocalDate.of(2023, 8, 17)).metodeBayar("Transfer Bank")
                 .createdAt(LocalDateTime.now().minusMonths(2)).build());
 
