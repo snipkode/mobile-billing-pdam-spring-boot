@@ -46,13 +46,21 @@ public class PengaduanService {
                 .build();
 
         Pengaduan saved = pengaduanRepository.save(p);
-        return new PengaduanResponse(saved.getNomorTiket(), saved.getKategori(), saved.getStatus());
+        return toResponse(saved);
     }
 
     public List<PengaduanResponse> getList(Long pelangganId) {
         return pengaduanRepository.findByPelangganIdOrderByCreatedAtDesc(pelangganId)
-                .stream().map(p -> new PengaduanResponse(p.getNomorTiket(), p.getKategori(), p.getStatus()))
-                .toList();
+                .stream().map(this::toResponse).toList();
+    }
+
+    private PengaduanResponse toResponse(Pengaduan p) {
+        return new PengaduanResponse(
+                p.getNomorTiket(), p.getKategori(), p.getKategori(),
+                p.getDeskripsi(), p.getStatus(),
+                p.getFotoPath(),
+                p.getCreatedAt() != null ? p.getCreatedAt().toString() : null
+        );
     }
 
     private String saveFoto(MultipartFile foto) {
