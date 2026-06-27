@@ -25,6 +25,13 @@ public class NotifikasiController {
         return ResponseEntity.ok(ApiResponse.ok(notifikasiService.getNotifikasi(principalHelper.getPelangganId(principal))));
     }
 
+    @PatchMapping("/{id}/read")
+    public ResponseEntity<ApiResponse<Void>> markRead(@AuthenticationPrincipal UserDetails principal,
+                                                       @PathVariable Long id) {
+        notifikasiService.markRead(principalHelper.getPelangganId(principal), id);
+        return ResponseEntity.ok(ApiResponse.ok("Notifikasi ditandai dibaca"));
+    }
+
     @PutMapping("/read-all")
     public ResponseEntity<ApiResponse<Void>> readAll(@AuthenticationPrincipal UserDetails principal) {
         notifikasiService.markAllRead(principalHelper.getPelangganId(principal));

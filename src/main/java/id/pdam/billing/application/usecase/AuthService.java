@@ -2,6 +2,7 @@ package id.pdam.billing.application.usecase;
 
 import id.pdam.billing.application.dto.request.LoginRequest;
 import id.pdam.billing.application.dto.response.AuthResponse;
+import id.pdam.billing.application.dto.response.UserResponse;
 import id.pdam.billing.application.mapper.PelangganMapper;
 import id.pdam.billing.domain.entity.Pelanggan;
 import id.pdam.billing.domain.repository.PelangganRepository;
@@ -28,5 +29,11 @@ public class AuthService {
                 .orElseThrow(() -> new UsernameNotFoundException("Pelanggan tidak ditemukan"));
         String token = jwtService.generateToken(pelanggan.getNomorPelanggan());
         return new AuthResponse(token, pelangganMapper.toResponse(pelanggan));
+    }
+
+    public UserResponse me(String nomorPelanggan) {
+        return pelangganMapper.toResponse(
+                pelangganRepository.findByNomorPelanggan(nomorPelanggan)
+                        .orElseThrow(() -> new UsernameNotFoundException("Pelanggan tidak ditemukan")));
     }
 }
