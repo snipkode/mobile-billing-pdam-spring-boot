@@ -167,6 +167,76 @@ Tagihan: Oktober (BELUM_LUNAS), September & Agustus 2023 (LUNAS).
 | `DB_USER` | `postgres` | PostgreSQL username |
 | `DB_PASS` | `postgres` | PostgreSQL password |
 
+## Deployment JAR (Production Server)
+
+### 1. Build JAR
+```bash
+mvn clean package -DskipTests
+# Output: target/billing-0.0.1-SNAPSHOT.jar
+```
+
+### 2. Transfer ke Server
+```bash
+scp target/billing-0.0.1-SNAPSHOT.jar user@server:/opt/billing/
+```
+
+### 3. Buat systemd Service
+```bash
+sudo nano /etc/systemd/system/billing.service
+```
+
+```ini
+[Unit]
+Description=PDAM Billing Spring Boot
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/billing
+ExecStart=/usr/bin/java -jar billing-0.0.1-SNAPSHOT.jar
+Restart=always
+RestartSec=5
+Environment=SPRING_PROFILES_ACTIVE=h2
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable billing
+sudo systemctl start billing
+```
+
+### 4. Perintah Berguna
+```bash
+systemctl status billing        # cek status
+systemctl restart billing       # restart
+journalctl -u billing -f        # lihat log live
+journalctl -u billing -n 100    # 100 baris log terakhir
+```
+
+### 5. HTTPS via Stunnel (opsional)
+Jika aplikasi berjalan di belakang stunnel untuk SSL termination:
+
+```ini
+# /etc/stunnel/stunnel.conf
+[springboot]
+accept  = 8080
+connect = 127.0.0.1:8082
+cert    = /etc/letsencrypt/live/domain.tld/fullchain.pem
+key     = /etc/letsencrypt/live/domain.tld/privkey.pem
+client  = no
+```
+
+```bash
+sudo systemctl restart stunnel4
+```
+
+> Pastikan port yang digunakan (misal 8080) dibuka di firewall:
+> ```bash
+> sudo ufw allow 8080/tcp
+> ```
+
 ## Related
 
 - Frontend: [mobile-billing-pdam-rn](https://github.com/snipkode/mobile-billing-pdam-rn) — React Native
