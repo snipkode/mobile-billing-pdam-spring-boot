@@ -13,6 +13,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class AdminController {
     private final PengaduanService pengaduanService;
     private final PelangganRepository pelangganRepository;
     private final PelangganMapper pelangganMapper;
+    private final PasswordEncoder passwordEncoder;
 
     // === PENDAFTARAN ===
     @GetMapping("/pendaftaran")
@@ -62,7 +64,38 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok(pengaduanService.updateStatus(nomorTiket, body.get("status"))));
     }
 
-    // === VERIFIKASI PELANGGAN ===
+    // === USER MANAGEMENT ===
+    @GetMapping("/users")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> listUsers(
+            @RequestParam(required = false) String search) {
+        var all = pelangganRepository.findAll().stream()
+            .filter(p -> search == null || search.isBlank() ||
+                p.getNama().toLowerCase().contains(search.toLowerCase()) ||
+                p.getNomorPelanggan().contains(search))
+            .map(pelangganMapper::toResponse).toList();
+        return ResponseEntity.ok(ApiResponse.ok(all));
+    }
+
+    @PatchMapping("/users/{id}/toggle-aktif")
+    @CacheEvict(value = "pelanggan", allEntries = true)
+    public ResponseEntity<ApiResponse<UserResponse>> toggleAktif(@PathVariable Long id) {
+        var p = pelangganRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Pelanggan tidak ditemukan"));
+        p.setAktif(!p.isAktif());
+        pelangganRepository.save(p);
+        return ResponseEntity.ok(ApiResponse.ok(pelangganMapper.toResponse(p)));
+    }
+
+    @PatchMapping("/users/{id}/reset-password")
+    @CacheEvict(value = "pelanggan", allEntries = true)
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@PathVariable Long id,
+                                                            @RequestBody Map<String, String> body) {
+        var p = pelangganRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Pelanggan tidak ditemukan"));
+        p.setPassword(passwordEncoder.encode(body.get("password")));
+        pelangganRepository.save(p);
+        return ResponseEntity.ok(ApiResponse.ok("Password direset"));
+    }
     @GetMapping("/pelanggan/unverified")
     public ResponseEntity<ApiResponse<List<UserResponse>>> unverified() {
         return ResponseEntity.ok(ApiResponse.ok(
