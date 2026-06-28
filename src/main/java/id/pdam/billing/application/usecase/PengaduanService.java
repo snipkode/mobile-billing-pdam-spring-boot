@@ -8,6 +8,7 @@ import id.pdam.billing.domain.repository.PelangganRepository;
 import id.pdam.billing.domain.repository.PengaduanRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,7 +22,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PengaduanService {
 
-    private static final Path UPLOAD_DIR = Paths.get("uploads/pengaduan");
+    @Value("${app.upload.dir:${user.home}/pdam-uploads}")
+    private String uploadDir;
+
+    private Path pengaduanDir() {
+        return Paths.get(uploadDir, "pengaduan");
+    }
 
     private final PengaduanRepository pengaduanRepository;
     private final PelangganRepository pelangganRepository;
@@ -78,11 +84,12 @@ public class PengaduanService {
 
     private String saveFoto(MultipartFile foto) {
         try {
-            Files.createDirectories(UPLOAD_DIR);
+            Path dir = pengaduanDir();
+            Files.createDirectories(dir);
             String ext = foto.getOriginalFilename() != null && foto.getOriginalFilename().contains(".")
                     ? foto.getOriginalFilename().substring(foto.getOriginalFilename().lastIndexOf('.')) : ".jpg";
             String filename = UUID.randomUUID() + ext;
-            Files.copy(foto.getInputStream(), UPLOAD_DIR.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(foto.getInputStream(), dir.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
             return "uploads/pengaduan/" + filename;
         } catch (IOException e) {
             throw new RuntimeException("Gagal menyimpan foto: " + e.getMessage());
