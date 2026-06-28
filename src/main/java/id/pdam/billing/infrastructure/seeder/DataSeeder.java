@@ -26,6 +26,18 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) {
         if (pelangganRepo.existsByNomorPelanggan("12345678")) return;
 
+        // Admin user
+        pelangganRepo.save(Pelanggan.builder()
+                .nomorPelanggan("admin")
+                .nama("Administrator")
+                .email("admin@pdam.id")
+                .telepon("081200000000")
+                .password(passwordEncoder.encode("admin123"))
+                .role("ADMIN")
+                .aktif(true)
+                .createdAt(LocalDateTime.now())
+                .build());
+
         Pelanggan p = pelangganRepo.save(Pelanggan.builder()
                 .nomorPelanggan("12345678")
                 .nama("Budi Setiawan")

@@ -8,6 +8,7 @@ import id.pdam.billing.domain.entity.Pelanggan;
 import id.pdam.billing.domain.repository.PelangganRepository;
 import id.pdam.billing.infrastructure.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -31,6 +32,7 @@ public class AuthService {
         return new AuthResponse(token, pelangganMapper.toResponse(pelanggan));
     }
 
+    @Cacheable(value = "pelanggan", key = "#nomorPelanggan")
     public UserResponse me(String nomorPelanggan) {
         return pelangganMapper.toResponse(
                 pelangganRepository.findByNomorPelanggan(nomorPelanggan)

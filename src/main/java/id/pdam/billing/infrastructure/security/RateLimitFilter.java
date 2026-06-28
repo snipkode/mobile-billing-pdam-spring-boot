@@ -1,5 +1,7 @@
 package id.pdam.billing.infrastructure.security;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.*;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
@@ -9,14 +11,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    // Per-IP bucket: 10 requests / 1 minute untuk auth endpoints
-    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    // Caffeine cache auto-evicts idle IPs after 10 minutes — prevents memory leak
+    private final Cache<String, Bucket> buckets = Caffeine.newBuilder()
+        .expireAfterAccess(Duration.ofMinutes(10))
+        .maximumSize(10_000)
+        .build();
 
     private Bucket newBucket() {
         return Bucket.builder()
@@ -34,7 +37,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (uri.startsWith("/v1/auth/login") || uri.startsWith("/v1/auth/otp")
                 || uri.startsWith("/v1/auth/lupa-password") || uri.startsWith("/v1/auth/register")) {
             String ip = req.getRemoteAddr();
-            Bucket bucket = buckets.computeIfAbsent(ip, k -> newBucket());
+            Bucket bucket = buckets.get(ip, k -> newBucket());
             if (!bucket.tryConsume(1)) {
                 res.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
                 res.setContentType("application/json");
