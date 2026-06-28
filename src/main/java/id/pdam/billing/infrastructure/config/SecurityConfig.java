@@ -37,7 +37,8 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(a -> a
                         .requestMatchers("/auth/login", "/auth/logout", "/auth/otp/**",
-                                "/auth/register/**", "/auth/lupa-password/**", "/ws/**").permitAll()
+                                "/auth/register/**", "/auth/lupa-password/**", "/ws/**",
+                                "/uploads/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
