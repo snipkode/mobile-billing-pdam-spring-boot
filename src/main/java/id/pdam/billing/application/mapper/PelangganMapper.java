@@ -11,7 +11,8 @@ public class PelangganMapper {
         return new UserResponse(
                 p.getId(), p.getNama(), p.getNomorPelanggan(),
                 p.getEmail(), p.getTelepon(),
-                p.getAlamat(), p.getGolongan(), p.getStatusMeter(), p.getFotoProfil()
+                p.getAlamat(), p.getGolongan(), p.getStatusMeter(),
+                p.getFotoProfil(), p.getFotoKtp(), p.isVerified(), p.getRole()
         );
     }
 }

@@ -9,5 +9,8 @@ public record UserResponse(
         String alamat,
         String golongan,
         String statusMeter,
-        String fotoProfil
+        String fotoProfil,
+        String fotoKtp,
+        boolean verified,
+        String role
 ) {}

@@ -34,9 +34,9 @@ public class ProfilController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<UserResponse>> getProfile(@AuthenticationPrincipal UserDetails principal) {
-        var pelanggan = pelangganRepository.findByNomorPelanggan(principal.getUsername())
+        var p = pelangganRepository.findByNomorPelanggan(principal.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Pelanggan tidak ditemukan"));
-        return ResponseEntity.ok(ApiResponse.ok(pelangganMapper.toResponse(pelanggan)));
+        return ResponseEntity.ok(ApiResponse.ok(pelangganMapper.toResponse(p)));
     }
 
     @PutMapping
@@ -44,13 +44,13 @@ public class ProfilController {
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
             @AuthenticationPrincipal UserDetails principal,
             @RequestBody Map<String, String> body) {
-        var pelanggan = pelangganRepository.findByNomorPelanggan(principal.getUsername())
+        var p = pelangganRepository.findByNomorPelanggan(principal.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Pelanggan tidak ditemukan"));
-        if (body.containsKey("nama"))    pelanggan.setNama(body.get("nama"));
-        if (body.containsKey("telepon")) pelanggan.setTelepon(body.get("telepon"));
-        if (body.containsKey("email"))   pelanggan.setEmail(body.get("email"));
-        pelangganRepository.save(pelanggan);
-        return ResponseEntity.ok(ApiResponse.ok(pelangganMapper.toResponse(pelanggan)));
+        if (body.containsKey("nama"))    p.setNama(body.get("nama"));
+        if (body.containsKey("telepon")) p.setTelepon(body.get("telepon"));
+        if (body.containsKey("email"))   p.setEmail(body.get("email"));
+        pelangganRepository.save(p);
+        return ResponseEntity.ok(ApiResponse.ok(pelangganMapper.toResponse(p)));
     }
 
     @PostMapping("/foto")
@@ -58,17 +58,33 @@ public class ProfilController {
     public ResponseEntity<ApiResponse<UserResponse>> uploadFoto(
             @AuthenticationPrincipal UserDetails principal,
             @RequestParam("foto") MultipartFile file) throws IOException {
+        var p = pelangganRepository.findByNomorPelanggan(principal.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("Pelanggan tidak ditemukan"));
+        p.setFotoProfil("/uploads/foto/" + saveFile(file, "foto"));
+        pelangganRepository.save(p);
+        return ResponseEntity.ok(ApiResponse.ok(pelangganMapper.toResponse(p)));
+    }
+
+    @PostMapping("/ktp")
+    @CacheEvict(value = "pelanggan", key = "#principal.username")
+    public ResponseEntity<ApiResponse<UserResponse>> uploadKtp(
+            @AuthenticationPrincipal UserDetails principal,
+            @RequestParam("foto") MultipartFile file) throws IOException {
+        var p = pelangganRepository.findByNomorPelanggan(principal.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("Pelanggan tidak ditemukan"));
+        p.setFotoKtp("/uploads/ktp/" + saveFile(file, "ktp"));
+        p.setVerified(false); // reset — tunggu admin review
+        pelangganRepository.save(p);
+        return ResponseEntity.ok(ApiResponse.ok(pelangganMapper.toResponse(p)));
+    }
+
+    private String saveFile(MultipartFile file, String subdir) throws IOException {
         String ext = file.getOriginalFilename() != null
             ? file.getOriginalFilename().replaceAll(".*\\.", ".") : ".jpg";
-        Path dir = Paths.get(uploadDir, "foto");
+        Path dir = Paths.get(uploadDir, subdir);
         Files.createDirectories(dir);
         String filename = UUID.randomUUID() + ext;
         Files.copy(file.getInputStream(), dir.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
-
-        var pelanggan = pelangganRepository.findByNomorPelanggan(principal.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("Pelanggan tidak ditemukan"));
-        pelanggan.setFotoProfil("/uploads/foto/" + filename);
-        pelangganRepository.save(pelanggan);
-        return ResponseEntity.ok(ApiResponse.ok(pelangganMapper.toResponse(pelanggan)));
+        return filename;
     }
 }

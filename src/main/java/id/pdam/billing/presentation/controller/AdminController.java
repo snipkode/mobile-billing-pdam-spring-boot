@@ -2,11 +2,16 @@ package id.pdam.billing.presentation.controller;
 
 import id.pdam.billing.application.dto.response.ApiResponse;
 import id.pdam.billing.application.dto.response.PengaduanResponse;
+import id.pdam.billing.application.dto.response.UserResponse;
+import id.pdam.billing.application.mapper.PelangganMapper;
 import id.pdam.billing.application.usecase.PengaduanService;
 import id.pdam.billing.application.usecase.RegisterService;
 import id.pdam.billing.domain.entity.PendaftaranBaru;
+import id.pdam.billing.domain.repository.PelangganRepository;
 import id.pdam.billing.domain.repository.PendaftaranBaruRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +26,8 @@ public class AdminController {
     private final PendaftaranBaruRepository pendaftaranBaruRepository;
     private final RegisterService registerService;
     private final PengaduanService pengaduanService;
+    private final PelangganRepository pelangganRepository;
+    private final PelangganMapper pelangganMapper;
 
     // === PENDAFTARAN ===
     @GetMapping("/pendaftaran")
@@ -32,8 +39,7 @@ public class AdminController {
     }
 
     @PostMapping("/pendaftaran/{id}/approve")
-    public ResponseEntity<ApiResponse<Void>> approve(@PathVariable Long id,
-                                                      @RequestBody Map<String, String> body) {
+    public ResponseEntity<ApiResponse<Void>> approve(@PathVariable Long id, @RequestBody Map<String, String> body) {
         registerService.approve(id, body.get("nomorPelanggan"), body.get("password"));
         return ResponseEntity.ok(ApiResponse.ok("Pendaftaran disetujui"));
     }
@@ -53,7 +59,25 @@ public class AdminController {
     @PatchMapping("/pengaduan/{nomorTiket}/status")
     public ResponseEntity<ApiResponse<PengaduanResponse>> updateStatus(
             @PathVariable String nomorTiket, @RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(ApiResponse.ok(pengaduanService.updateStatus(nomorTiket, body.get("status"))));
+    }
+
+    // === VERIFIKASI PELANGGAN ===
+    @GetMapping("/pelanggan/unverified")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> unverified() {
         return ResponseEntity.ok(ApiResponse.ok(
-            pengaduanService.updateStatus(nomorTiket, body.get("status"))));
+            pelangganRepository.findAll().stream()
+                .filter(p -> !p.isVerified() && p.getFotoKtp() != null)
+                .map(pelangganMapper::toResponse).toList()));
+    }
+
+    @PostMapping("/pelanggan/{id}/verifikasi")
+    @CacheEvict(value = "pelanggan", allEntries = true)
+    public ResponseEntity<ApiResponse<Void>> verifikasi(@PathVariable Long id) {
+        var p = pelangganRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Pelanggan tidak ditemukan"));
+        p.setVerified(true);
+        pelangganRepository.save(p);
+        return ResponseEntity.ok(ApiResponse.ok("Pelanggan terverifikasi"));
     }
 }
