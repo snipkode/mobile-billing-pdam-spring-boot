@@ -7,8 +7,7 @@ import id.pdam.billing.application.dto.response.UserResponse;
 import id.pdam.billing.application.usecase.AuthService;
 import id.pdam.billing.application.usecase.LupaPasswordService;
 import id.pdam.billing.application.usecase.OtpService;
-import id.pdam.billing.application.usecase.RegisterService;
-import jakarta.validation.Valid;
+import id.pdam.billing.application.usecase.RegisterService;import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,6 +34,20 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> me(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(ApiResponse.ok(authService.me(userDetails.getUsername())));
+    }
+
+    // === MASUK DENGAN OTP ===
+    // Step 1: POST /auth/login/otp  { "nomorPelanggan" } → kirim OTP ke telepon terdaftar
+    @PostMapping("/login/otp")
+    public ResponseEntity<ApiResponse<Void>> loginOtpKirim(@RequestBody Map<String, String> body) {
+        lupaPasswordService.kirimOtpLogin(body.get("nomorPelanggan"));
+        return ResponseEntity.ok(ApiResponse.ok("OTP terkirim ke nomor terdaftar"));
+    }
+
+    // Step 2: POST /auth/login/otp/verifikasi  { "nomorPelanggan", "kode" } → return token
+    @PostMapping("/login/otp/verifikasi")
+    public ResponseEntity<ApiResponse<AuthResponse>> loginOtpVerifikasi(@RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(ApiResponse.ok(authService.loginWithOtp(body.get("nomorPelanggan"), body.get("kode"))));
     }
 
     @PostMapping("/logout")

@@ -22,6 +22,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final PelangganMapper pelangganMapper;
+    private final OtpService otpService;
 
     public AuthResponse login(LoginRequest req) {
         authenticationManager.authenticate(
@@ -37,5 +38,15 @@ public class AuthService {
         return pelangganMapper.toResponse(
                 pelangganRepository.findByNomorPelanggan(nomorPelanggan)
                         .orElseThrow(() -> new UsernameNotFoundException("Pelanggan tidak ditemukan")));
+    }
+
+    public AuthResponse loginWithOtp(String nomorPelanggan, String kode) {
+        Pelanggan pelanggan = pelangganRepository.findByNomorPelanggan(nomorPelanggan)
+                .orElseThrow(() -> new UsernameNotFoundException("Pelanggan tidak ditemukan"));
+        if (!otpService.verifikasiOtp(pelanggan.getTelepon(), kode, "LOGIN_OTP"))
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.BAD_REQUEST, "OTP tidak valid atau kadaluarsa");
+        String token = jwtService.generateToken(pelanggan.getNomorPelanggan());
+        return new AuthResponse(token, pelangganMapper.toResponse(pelanggan));
     }
 }

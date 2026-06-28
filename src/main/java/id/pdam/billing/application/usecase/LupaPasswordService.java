@@ -22,6 +22,12 @@ public class LupaPasswordService {
         otpService.kirimOtp(p.getTelepon(), "LUPA_PASSWORD");
     }
 
+    public void kirimOtpLogin(String nomorPelanggan) {
+        var p = pelangganRepository.findByNomorPelanggan(nomorPelanggan)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Nomor pelanggan tidak ditemukan"));
+        otpService.kirimOtp(p.getTelepon(), "LOGIN_OTP");
+    }
+
     @Transactional
     public void resetPassword(String nomorPelanggan, String kode, String passwordBaru) {
         var p = pelangganRepository.findByNomorPelanggan(nomorPelanggan)
