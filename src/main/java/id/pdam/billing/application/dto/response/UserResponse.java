@@ -8,5 +8,6 @@ public record UserResponse(
         String telepon,
         String alamat,
         String golongan,
-        String statusMeter
+        String statusMeter,
+        String fotoProfil
 ) {}

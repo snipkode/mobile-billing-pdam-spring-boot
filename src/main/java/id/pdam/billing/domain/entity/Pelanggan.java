@@ -22,6 +22,7 @@ public class Pelanggan {
     private String password;
 
     private String golongan;
+    private String fotoProfil; // relative path, e.g. "uploads/foto/1.jpg"
 
     @Builder.Default
     private String statusMeter = "Aktif";
