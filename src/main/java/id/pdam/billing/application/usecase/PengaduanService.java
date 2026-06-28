@@ -54,6 +54,19 @@ public class PengaduanService {
                 .stream().map(this::toResponse).toList();
     }
 
+    public List<PengaduanResponse> getAllAdmin() {
+        return pengaduanRepository.findAll(
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"))
+                .stream().map(this::toResponse).toList();
+    }
+
+    public PengaduanResponse updateStatus(String nomorTiket, String status) {
+        Pengaduan p = pengaduanRepository.findByNomorTiket(nomorTiket)
+                .orElseThrow(() -> new EntityNotFoundException("Tiket tidak ditemukan"));
+        p.setStatus(status);
+        return toResponse(pengaduanRepository.save(p));
+    }
+
     private PengaduanResponse toResponse(Pengaduan p) {
         return new PengaduanResponse(
                 p.getNomorTiket(), p.getKategori(), p.getKategori(),
