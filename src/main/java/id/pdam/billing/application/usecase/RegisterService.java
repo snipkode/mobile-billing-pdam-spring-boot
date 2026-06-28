@@ -2,6 +2,7 @@ package id.pdam.billing.application.usecase;
 
 import id.pdam.billing.domain.entity.PendaftaranBaru;
 import id.pdam.billing.domain.entity.Pelanggan;
+import id.pdam.billing.domain.entity.Pelanggan;
 import id.pdam.billing.domain.repository.PendaftaranBaruRepository;
 import id.pdam.billing.domain.repository.PelangganRepository;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +64,33 @@ public class RegisterService {
         if (!otpService.verifikasiOtp(telepon, kode, "REGISTER_BARU"))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP tidak valid atau kadaluarsa");
         // Telepon terverifikasi, tinggal tunggu approval petugas
+    }
+
+    @Transactional
+    public void approve(Long id, String nomorPelanggan, String password) {
+        PendaftaranBaru p = pendaftaranBaruRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pendaftaran tidak ditemukan"));
+        if (pelangganRepository.existsByNomorPelanggan(nomorPelanggan))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Nomor pelanggan sudah dipakai");
+        pelangganRepository.save(Pelanggan.builder()
+            .nomorPelanggan(nomorPelanggan)
+            .nama(p.getNama()).telepon(p.getTelepon()).email(p.getEmail())
+            .alamat(p.getAlamat()).golongan(p.getGolongan())
+            .password(passwordEncoder.encode(password))
+            .createdAt(java.time.LocalDateTime.now())
+            .build());
+        p.setStatus("DISETUJUI");
+        p.setUpdatedAt(java.time.LocalDateTime.now());
+        pendaftaranBaruRepository.save(p);
+    }
+
+    @Transactional
+    public void tolak(Long id) {
+        PendaftaranBaru p = pendaftaranBaruRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pendaftaran tidak ditemukan"));
+        p.setStatus("DITOLAK");
+        p.setUpdatedAt(java.time.LocalDateTime.now());
+        pendaftaranBaruRepository.save(p);
     }
 
     private String normalizePhone(String phone) {
